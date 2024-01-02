@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
+   sodipodi:docname="novault.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     inkscape:zoom="10.461359"
+     inkscape:cx="18.926796"
+     inkscape:cy="24.327624"
+     inkscape:window-width="1908"
+     inkscape:window-height="1149"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       inkscape:label="lock.svg"
+       id="g2"
+       transform="matrix(0.02520939,0,0,0.026592,16.500206,11.370631)">
+      <path
+         id="shackle"
+         d="m 87.5,492.5 v -245 c 0,-116 94,-210 210,-210 116,0 210,94 210,210 v 258"
+         stroke="#0077d6"
+         stroke-dasharray="121, 85"
+         stroke-width="75"
+         fill="none" />
+      <g
+         id="body">
+        <circle
+           stroke-width="75"
+           stroke="#0077d6"
+           cy="647.5"
+           cx="297.5"
+           r="260"
+           fill="none"
+           id="circle1" />
+        <circle
+           cy="647.5"
+           cx="297.5"
+           r="90"
+           fill="#0077d6"
+           id="circle2" />
+      </g>
+    </g>
+  </g>
+</svg>
