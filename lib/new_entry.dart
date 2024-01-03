@@ -16,6 +16,7 @@ class NewEntry extends StatefulWidget {
 }
 
 class _NewEntryState extends State<NewEntry> {
+  bool _loading = false;
   _entryStatus(Entry entry, int responseCode, {String message = ""}) {
     if (responseCode == -1) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('network error')));
@@ -41,57 +42,74 @@ class _NewEntryState extends State<NewEntry> {
       body: Center(
           child: Container(
         margin: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _servicenameController,
-              decoration: const InputDecoration(labelText: 'service name'),
-            ),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'username'),
-            ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'password'),
-            ),
-            Container(
-              margin: const EdgeInsets.all(40),
-              child: Row(
+        child: _loading
+            ? const Visibility(child: CircularProgressIndicator())
+            : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                      onPressed: () async {
-                        String serviceName = _servicenameController.text;
-                        String userName = _usernameController.text;
-                        String password = _passwordController.text;
-                        Entry entry = Entry(serviceName, userName, password);
-                        Map<String, String> encryptedData =
-                            entry.getEncrypted(widget.masterPassword);
-                        encryptedData.addAll({"uname": widget.username});
-                        try {
-                          final response = await http
-                              .post(
-                                Uri.parse('https://novault.000webhostapp.com/add/index.php'),
-                                headers: <String, String>{
-                                  'Content-Type': 'application/json; charset=UTF-8'
-                                },
-                                body: convert.jsonEncode(encryptedData),
-                              )
-                              .timeout(const Duration(seconds: 15));
-                          _entryStatus(entry, response.statusCode, message: response.body);
-                        } catch (error) {
-                          _entryStatus(entry, -1, message: error.toString());
-                        }
-                      },
-                      child: const Text('save')),
+                  TextField(
+                    controller: _servicenameController,
+                    decoration: const InputDecoration(labelText: 'service name'),
+                  ),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(labelText: 'username'),
+                  ),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'password'),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(40),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                            onPressed: _loading
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _loading = true;
+                                    });
+                                    String serviceName = _servicenameController.text;
+                                    String userName = _usernameController.text;
+                                    String password = _passwordController.text;
+                                    if ([serviceName, userName, password]
+                                        .every((field) => field.isNotEmpty)) {
+                                      Entry entry = Entry(serviceName, userName, password);
+                                      Map<String, String> encryptedData =
+                                          entry.getEncrypted(widget.masterPassword);
+                                      encryptedData.addAll({"uname": widget.username});
+
+                                      try {
+                                        final response = await http
+                                            .post(
+                                              Uri.parse(
+                                                  'https://novault.000webhostapp.com/add/index.php'),
+                                              headers: <String, String>{
+                                                'Content-Type': 'application/json; charset=UTF-8'
+                                              },
+                                              body: convert.jsonEncode(encryptedData),
+                                            )
+                                            .timeout(const Duration(seconds: 15));
+                                        _entryStatus(entry, response.statusCode,
+                                            message: response.body);
+                                      } catch (error) {
+                                        _entryStatus(entry, -1, message: error.toString());
+                                      }
+                                    }
+                                    setState(() {
+                                      _loading = false;
+                                    });
+                                  },
+                            child: const Text('save')),
+                        Visibility(visible: _loading, child: const CircularProgressIndicator())
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
       )),
     );
   }

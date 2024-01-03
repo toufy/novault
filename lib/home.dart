@@ -13,10 +13,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool _loading = false;
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   _login(int responseCode, {String message = ""}) {
+    setState(() {
+      _loading = false;
+    });
     if (responseCode == -1) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('network error')));
     } else if (responseCode == 200) {
@@ -61,30 +65,36 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(onPressed: () {}, child: const Text('sign up')),
                   const SizedBox(width: 20),
                   ElevatedButton(
-                    onPressed: () async {
-                      final username = _usernameController.text;
-                      final password = _passwordController.text;
-                      try {
-                        final response = await http
-                            .post(
-                              Uri.parse('https://novault.000webhostapp.com/login/index.php'),
-                              headers: <String, String>{
-                                'Content-Type': 'application/json; charset=UTF-8'
-                              },
-                              body: convert.jsonEncode(
-                                  <String, String>{'uname': username, 'upasswd': password}),
-                            )
-                            .timeout(const Duration(seconds: 15));
-                        _login(response.statusCode, message: response.body);
-                      } catch (error) {
-                        _login(-1, message: error.toString());
-                      }
-                    },
+                    onPressed: _loading
+                        ? null
+                        : () async {
+                            setState(() {
+                              _loading = true;
+                            });
+                            final username = _usernameController.text;
+                            final password = _passwordController.text;
+                            try {
+                              final response = await http
+                                  .post(
+                                    Uri.parse('https://novault.000webhostapp.com/login/index.php'),
+                                    headers: <String, String>{
+                                      'Content-Type': 'application/json; charset=UTF-8'
+                                    },
+                                    body: convert.jsonEncode(
+                                        <String, String>{'uname': username, 'upasswd': password}),
+                                  )
+                                  .timeout(const Duration(seconds: 15));
+                              _login(response.statusCode, message: response.body);
+                            } catch (error) {
+                              _login(-1, message: error.toString());
+                            }
+                          },
                     child: const Text('login'),
                   ),
                 ],
               ),
             ),
+            Visibility(visible: _loading, child: const CircularProgressIndicator())
           ],
         ),
       )),

@@ -1,8 +1,8 @@
 import 'dart:convert' as convert;
-import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:novault/new_entry.dart';
 
@@ -12,10 +12,10 @@ class Entry {
   final String _userName;
   final String _password;
 
-  Map<String, String> getEncrypted(String masterPassword) {
+  Map<String, String> getEncrypted(String masterPassword, {iv}) {
     final keyBytes = convert.utf8.encode(masterPassword.padRight(32, '\x00'));
     final key = encrypt.Key(keyBytes);
-    final iv = encrypt.IV.fromLength(16);
+    iv ??= encrypt.IV.fromLength(16);
     final encrypter = encrypt.Encrypter(encrypt.AES(key));
     final encryptedServiceName = encrypter.encrypt(_serviceName, iv: iv);
     final encryptedUserName = encrypter.encrypt(_userName, iv: iv);
@@ -59,26 +59,34 @@ class Vault extends StatefulWidget {
 }
 
 class _VaultState extends State<Vault> {
-  @override
-  void initState() {
-    super.initState();
-    entries.clear();
-    http
-        .get(
-          Uri.https('novault.000webhostapp.com', 'get/index.php', {'uname': widget.username}),
-        )
-        .timeout(const Duration(seconds: 15))
-        .then((response) {
+  bool _loading = false;
+  resultMessage(String result) {
+    setState(() {
+      _loading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+  }
+
+  // TODO: fetch data with an external function
+  fetchData() async {
+    setState(() {
+      _loading = true;
+    });
+    try {
+      final jsonData = {'uname': widget.username};
+      final url = Uri.parse(
+          'https://novault.000webhostapp.com/get/index.php?data=${Uri.encodeComponent(convert.jsonEncode(jsonData))}');
+      final response = await http.get(url);
       if (response.statusCode == 200) {
-        final jsonRsp = convert.jsonDecode(response.body);
-        for (var row in jsonRsp) {
-          String strIv = row['service_iv'];
-          Uint8List ivBytes = convert.base64Decode(strIv);
-          encrypt.IV iv = encrypt.IV(ivBytes);
+        final responseData = convert.jsonDecode(response.body);
+        for (var row in responseData) {
           String encryptedServiceName = row['entry_name'];
           String encryptedServiceUname = row['entry_username'];
           String encryptedServicePasswd = row['entry_password'];
           Entry entry = Entry(encryptedServiceName, encryptedServiceUname, encryptedServicePasswd);
+          String ivStr = row['entry_iv'];
+          Uint8List ivBytes = convert.base64Decode(ivStr);
+          encrypt.IV iv = encrypt.IV(ivBytes);
           Map<String, String> textData = entry.getDecrypted(widget.password, iv);
           String serviceName = textData['service_name'] as String;
           String serviceUname = textData['service_uname'] as String;
@@ -86,8 +94,20 @@ class _VaultState extends State<Vault> {
           Entry decryptedEntry = Entry(serviceName, serviceUname, servicePasswd);
           addEntry(decryptedEntry);
         }
+        resultMessage("pulled vault entries");
+      } else {
+        resultMessage("failed to retrieve data: ${response.body}");
       }
-    }).catchError((error) {});
+    } catch (error) {
+      resultMessage("network error");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    entries.clear();
+    fetchData();
   }
 
   void addEntry(Entry entry) {
@@ -116,17 +136,19 @@ class _VaultState extends State<Vault> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       appBar: AppBar(),
       body: Center(
-        child: ListView.builder(
-          itemBuilder: (context, index) {
-            return _createEntry(entries[index]);
-          },
-          itemCount: entries.length,
-        ),
+        child: _loading
+            ? const Visibility(child: CircularProgressIndicator())
+            : ListView.builder(
+                itemBuilder: (context, index) {
+                  return _createEntry(entries[index], index);
+                },
+                itemCount: entries.length,
+              ),
       ),
     );
   }
 
-  Widget _createEntry(Entry entry) {
+  Widget _createEntry(Entry entry, int index) {
     return Card(
       child: Column(
         children: [
@@ -136,8 +158,20 @@ class _VaultState extends State<Vault> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(onPressed: () {}, child: const Icon(Icons.alternate_email)),
-              ElevatedButton(onPressed: () {}, child: const Icon(Icons.lock)),
+              ElevatedButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: entry._userName));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('copied "${entry._serviceName}" username')));
+                  },
+                  child: const Icon(Icons.alternate_email)),
+              ElevatedButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: entry._password));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('copied "${entry._serviceName}" password')));
+                  },
+                  child: const Icon(Icons.lock)),
               ElevatedButton(onPressed: () {}, child: const Icon(Icons.edit)),
               ElevatedButton(onPressed: () {}, child: const Icon(Icons.delete)),
             ],
