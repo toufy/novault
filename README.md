@@ -20,7 +20,7 @@ the password itself is encrypted with bcrypt and stored on the server as such.
 if the authentication succeeds, and the hash generated from the provided password matches the one stored on the server, it is then used as the encryption key.
 each entry stores its own initialization vector with its fields, the iv is used in combination with the password to encrypt/decrypt the fields of the entry with AES256.
 
-<img src="assets/screenshots.png" width=10% height=10%>
+<img src="assets/screenshots.png" width=50% height=50%>
 
 ## external dependencies
 - http (^1.1.2): used for http requests
