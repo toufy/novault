@@ -20,7 +20,13 @@ class Novault extends StatelessWidget {
             brightness: Brightness.dark,
           ),
           useMaterial3: true,
-          cardTheme: const CardTheme(surfaceTintColor: Colors.lightBlueAccent)),
+          cardTheme: const CardTheme(surfaceTintColor: Colors.lightBlueAccent),
+          snackBarTheme: const SnackBarThemeData(
+              backgroundColor: Colors.amber, contentTextStyle: TextStyle(color: Colors.black)),
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+            foregroundColor: Colors.blueGrey,
+            backgroundColor: Colors.amber,
+          )),
       home: const LoginPage(),
     );
   }

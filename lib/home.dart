@@ -1,6 +1,7 @@
 import 'dart:convert' as convert;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'vault.dart';
@@ -44,10 +45,11 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Center(
           child: Container(
-        margin: const EdgeInsets.all(8),
+        margin: const EdgeInsets.only(left: 8, right: 8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Spacer(),
             TextField(
               controller: _usernameController,
               decoration: const InputDecoration(labelText: 'username'),
@@ -62,12 +64,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(onPressed: () {}, child: const Text('sign up')),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: _loading
-                        ? null
-                        : () async {
+                  _loading
+                      ? const Visibility(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: () async {
                             setState(() {
                               _loading = true;
                             });
@@ -89,12 +89,29 @@ class _LoginPageState extends State<LoginPage> {
                               _login(-1, message: error.toString());
                             }
                           },
-                    child: const Text('login'),
-                  ),
+                          child: const Text('login'),
+                        ),
                 ],
               ),
             ),
-            Visibility(visible: _loading, child: const CircularProgressIndicator())
+            const Spacer(),
+            Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("don't have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Clipboard.setData(
+                            const ClipboardData(text: "https://novault.000webhostapp.com/signup"));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(content: Text("copied url")));
+                      },
+                      child: const Text("https://novault.000webhostapp.com/signup"),
+                    ),
+                  ],
+                ))
           ],
         ),
       )),

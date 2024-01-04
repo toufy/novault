@@ -104,7 +104,6 @@ class _NewEntryState extends State<NewEntry> {
                                     });
                                   },
                             child: const Text('save')),
-                        Visibility(visible: _loading, child: const CircularProgressIndicator())
                       ],
                     ),
                   ),
